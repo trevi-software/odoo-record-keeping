@@ -1,0 +1,7 @@
+<odoo>
+    <template id="web_record_keeping_attachment_assets" inherit_id="web.assets_frontend">
+        <xpath expr="//script[last()]" position="after">
+            <script type="text/javascript" src="/record_keeping_attachment/static/src/js/media.js"/>
+        </xpath>
+    </template>
+</odoo>

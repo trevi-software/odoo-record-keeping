@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -49,3 +50,8 @@ class Attachment(models.Model):
             if 'is_official' in vals.keys():
                 vals['public'] = vals['is_official']
             return super().write(vals)
+
+    def unlink(self):
+        if not self.env.user.has_group('record_keeping.group_rk_manager') and self.document_id.matter_id:
+            raise UserError(_("You are not authorized to delete a document linked to a matter"))
+        return super(Attachment, self).unlink()
