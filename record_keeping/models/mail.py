@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from odoo import _, api, fields, models
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class RecordKeepingMail(models.Model):
@@ -143,4 +146,3 @@ class Mail(models.Model):
         except Exception as e:
             _logger.error(f"Error in create for rk.mail method for res.id {res.id}: {str(e)}")
         return res
-
