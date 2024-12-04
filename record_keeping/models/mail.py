@@ -112,32 +112,35 @@ class Mail(models.Model):
         rk_mail_val_list = []
 
         res = super().create(vals)
-        fields = self.env['rk.mail'].fields_get()
-        for mail in res:
-            values = {'name': mail['subject']}
-            for key in fields.keys():
-                if hasattr(mail, key):
-                    if fields[key]['type'] in ['many2many']:
-                        values[key] = mail[key].ids
-                    elif fields[key]['type'] in ['many2one']:
-                        values[key] = mail[key].id
-                    else:
-                        values[key] = mail[key]
-            values['sender'] = mail.email_from
-            receivers = [mail.email_to] if mail.email_to else []
-            recipients = [
-                recipient_id.email_formatted for recipient_id in mail.recipient_ids if recipient_id.email_formatted
-            ]
-            unique_recipients = list(set(receivers + recipients))
-            values['receiver'] = ', '.join(unique_recipients)
+        try:
+            fields = self.env['rk.mail'].fields_get()
+            for mail in res:
+                values = {'name': mail['subject']}
+                for key in fields.keys():
+                    if hasattr(mail, key):
+                        if fields[key]['type'] in ['many2many']:
+                            values[key] = mail[key].ids
+                        elif fields[key]['type'] in ['many2one']:
+                            values[key] = mail[key].id
+                        else:
+                            values[key] = mail[key]
+                values['sender'] = mail.email_from
+                receivers = [mail.email_to] if mail.email_to else []
+                recipients = [
+                    recipient_id.email_formatted for recipient_id in mail.recipient_ids if recipient_id.email_formatted
+                ]
+                unique_recipients = list(set(receivers + recipients))
+                values['receiver'] = ', '.join(unique_recipients)
 
-            if (model := mail.model) and (res_id := mail.res_id):
-                if rec := self.env[model].browse(res_id):
-                    if hasattr(rec, 'matter_id'):
-                        values['matter_id'] = rec.matter_id.id
-                        values['is_official'] = True
-            rk_mail_val_list.append(values)
-        for rk_vals in rk_mail_val_list:
-            self.env['rk.mail'].create(rk_vals)
+                if (model := mail.model) and (res_id := mail.res_id):
+                    if rec := self.env[model].browse(res_id):
+                        if hasattr(rec, 'matter_id'):
+                            values['matter_id'] = rec.matter_id.id
+                            values['is_official'] = True
+                rk_mail_val_list.append(values)
+            for rk_vals in rk_mail_val_list:
+                self.env['rk.mail'].create(rk_vals)
+        except Exception as e:
+            _logger.error(f"Error in create for rk.mail method for res.id {res.id}: {str(e)}")
         return res
 
